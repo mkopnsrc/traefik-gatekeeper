@@ -40,6 +40,7 @@ temporary access through traefik's `ipAllowList` on request. See
 - [Troubleshooting](#troubleshooting)
 - [Limitations](#limitations)
 - [Development](#development)
+- [Contributing and security](#contributing-and-security)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
 
@@ -206,8 +207,9 @@ Images are published to GitHub Container Registry for `linux/amd64` and
 `linux/arm64`:
 
 ```sh
-docker pull ghcr.io/mkopnsrc/traefik-gatekeeper:edge        # latest main
-docker pull ghcr.io/mkopnsrc/traefik-gatekeeper:1.0.0       # a release (once tagged)
+docker pull ghcr.io/mkopnsrc/traefik-gatekeeper:1.0.0   # a release (recommended: pin a version)
+docker pull ghcr.io/mkopnsrc/traefik-gatekeeper:1       # newest 1.x release
+docker pull ghcr.io/mkopnsrc/traefik-gatekeeper:edge    # main branch, unreleased
 ```
 
 Or build it yourself (the build runs the tests):
@@ -222,7 +224,7 @@ Compose ([`examples/compose.yml`](examples/compose.yml) has a commented version)
 ```yaml
 services:
   traefik-gatekeeper:
-    image: ghcr.io/mkopnsrc/traefik-gatekeeper:edge
+    image: ghcr.io/mkopnsrc/traefik-gatekeeper:1.0.0
     container_name: traefik-gatekeeper
     read_only: true
     cap_drop: [ALL]
@@ -364,7 +366,7 @@ http:
 |---|---|
 | Image | `ghcr.io/mkopnsrc/traefik-gatekeeper`, base `gcr.io/distroless/static-debian13`, ~12 MB, no shell |
 | Platforms | `linux/amd64`, `linux/arm64` |
-| Tags | `edge` (main), `X.Y.Z` and `X.Y` (releases), `sha-<commit>` |
+| Tags | `X.Y.Z`, `X.Y`, `X` and `latest` (releases); `edge` (main branch, unreleased) |
 | User | `65532:65532` (override with `user:`) |
 | Port | `5000/tcp`, plain HTTP; TLS is terminated by traefik |
 | Health check | built in: `traefik-gatekeeper healthcheck` (calls `/healthz`) |
@@ -375,7 +377,8 @@ http:
 ```sh
 docker logs -f traefik-gatekeeper                               # JSON logs
 docker inspect -f '{{.State.Health.Status}}' traefik-gatekeeper  # health
-gh attestation verify oci://ghcr.io/mkopnsrc/traefik-gatekeeper:edge --owner mkopnsrc  # provenance
+docker run --rm ghcr.io/mkopnsrc/traefik-gatekeeper:1.0.0 version                      # version
+gh attestation verify oci://ghcr.io/mkopnsrc/traefik-gatekeeper:1.0.0 --owner mkopnsrc  # provenance
 ```
 
 Without containers:
@@ -395,11 +398,18 @@ and pull request:
 
 1. `gofmt`, `go vet`, `go test -race`, `govulncheck`;
 2. a multi-arch image build (cross-compiled, no emulation) with SBOM and
-   provenance. Pull requests build only; pushes to `main` publish `edge`, and
-   tags `vX.Y.Z` publish `X.Y.Z` and `X.Y`, with a signed build attestation.
+   provenance. Pull requests build only; pushes to `main` publish `edge`; tags
+   `vX.Y.Z` publish `X.Y.Z`, `X.Y`, `X` (from 1.0 on) and `latest`, with a
+   signed build attestation. The version is built into the binary
+   (`traefik-gatekeeper version`, and the start-up log line).
 
-Release: `git tag v1.0.0 && git push origin v1.0.0`. Dependabot keeps Go
-modules, the base images and the workflow actions up to date.
+[`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) runs CodeQL code
+scanning (`security-extended` queries) for the Go code and the workflows on
+every change and weekly; results appear under Security → Code scanning.
+
+Releases follow [semantic versioning](https://semver.org): `git tag v1.2.3 &&
+git push origin v1.2.3`. Dependabot keeps Go modules, the base images and the
+workflow actions up to date.
 
 ## Operations
 
@@ -459,10 +469,18 @@ go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 | `internal/telegram` | Bot API client: messages, buttons, long polling |
 | `internal/web` | HTTP handlers, security middleware, templates, static files |
 | `examples/` | compose and traefik examples |
-| `.github/` | CI workflow and Dependabot |
+| `.github/` | CI and CodeQL workflows, Dependabot, issue and PR templates |
 
 `internal/web/static/htmx.min.js` is [htmx](https://htmx.org) 2.0.4 (Zero-Clause
 BSD licence), vendored so the page loads nothing from third-party hosts.
+
+## Contributing and security
+
+- **Bugs and ideas:** open an issue using the templates; please replace tokens,
+  Telegram IDs, addresses and hostnames with placeholders.
+- **Pull requests:** welcome. `main` requires the CI checks to pass.
+- **Vulnerabilities:** report them privately, not as issues; see
+  [SECURITY.md](SECURITY.md).
 
 ## Acknowledgements
 

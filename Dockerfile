@@ -2,13 +2,15 @@
 # (no emulation needed for multi-arch images).
 FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.27-trixie AS build
 ARG TARGETOS TARGETARCH
+# Set by CI from the git tag (e.g. 1.2.3); "dev" for local builds.
+ARG VERSION=dev
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 COPY . .
 RUN go test ./... \
  && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
-    go build -trimpath -ldflags="-s -w" -o /out/traefik-gatekeeper ./cmd/traefik-gatekeeper
+    go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/traefik-gatekeeper ./cmd/traefik-gatekeeper
 
 # Run: distroless, no shell, no package manager.
 FROM gcr.io/distroless/static-debian13

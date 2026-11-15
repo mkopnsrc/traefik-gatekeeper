@@ -1,0 +1,68 @@
+name: Bug report
+description: Something doesn't work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! **Don't paste secrets or personal data**: no bot tokens,
+        Telegram chat/user IDs, real IP addresses or hostnames. Replace them with
+        placeholders such as `123456789`, `198.51.100.7`, `app.example.com`.
+
+        Security problems: please report them privately instead (see SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `traefik-gatekeeper version`, or the image tag you run.
+      placeholder: "1.0.0 / ghcr.io/mkopnsrc/traefik-gatekeeper:1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: How do you run it?
+      options:
+        - Docker
+        - Rootless Docker
+        - Podman
+        - Kubernetes
+        - Binary
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: traefik
+    attributes:
+      label: traefik version
+      placeholder: "v3.x"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: GK_* settings and the relevant traefik routers (placeholders only).
+      render: yaml
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines from `docker logs traefik-gatekeeper` and `state/audit.log` (redacted).
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I read the Troubleshooting section of the README.
+          required: true
+        - label: I removed tokens, IDs, real addresses and hostnames from this report.
+          required: true
