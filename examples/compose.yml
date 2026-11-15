@@ -1,0 +1,42 @@
+# Example deployment. Hostnames, IDs, networks and paths are placeholders:
+# replace them with your own. See README.md for each setting.
+services:
+  traefik-gatekeeper:
+    build: ..                       # or: image: <your registry>/traefik-gatekeeper:<tag>
+    container_name: traefik-gatekeeper
+    # The image runs as uid/gid 65532. The allowlist file, ./state and the token
+    # file must be writable/readable by that uid (see README "File ownership").
+    # With rootless Docker, use user: "0:0" instead (uid 0 in the container is
+    # your unprivileged host account).
+    # user: "0:0"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      GK_ALLOWED_HOSTS: ".example.com"            # hosts whose /routemein is routed here
+      GK_TRUSTED_PROXIES: "172.30.0.0/16"         # the Docker network traefik connects from
+      GK_MIDDLEWARE: "gatekeeper-allowlist"       # name of the generated ipAllowList middleware
+      GK_ALLOWLIST_FILE: "gatekeeper-allowlist.yml"
+      GK_ALLOWLIST_WRITE: "inplace"               # the file is bind-mounted on its own
+      GK_BASE_RANGES: "127.0.0.1/32"              # always allowed
+      GK_DURATIONS: "30m,2h,8h"
+      GK_TELEGRAM_CHAT_ID: "-1001234567890"       # chat that receives requests
+      GK_TELEGRAM_APPROVERS: "123456789"          # Telegram user IDs allowed to approve
+      TZ: "UTC"
+    volumes:
+      # traefik's file provider does not watch sub-directories: the allowlist file
+      # must sit directly in traefik's dynamic configuration directory. Create it
+      # (empty) before the first start.
+      - ./traefik/dynamic/gatekeeper-allowlist.yml:/allowlist/gatekeeper-allowlist.yml
+      - ./state:/state
+      - ./secrets/telegram_token:/run/secrets/telegram_token:ro
+    networks: [proxy]
+    deploy:
+      resources:
+        limits: {cpus: "0.25", memory: 48M, pids: 64}
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true                  # the network traefik and your services share

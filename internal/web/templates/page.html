@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false,"selfRequestsOnly":true,"historyCacheSize":0}'>
+<title>Request access · {{.Host}}</title>
+<link rel="stylesheet" href="{{.Base}}/static/style.css">
+<link rel="icon" href="{{.Base}}/static/logo.svg" type="image/svg+xml">
+<script src="{{.Base}}/static/htmx.min.js" defer></script>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+</svg>
+<main class="wrap">
+  <div class="card">
+    <div class="head">
+      <div class="badge"><svg class="i"><use href="#i-shield"/></svg></div>
+      <div><h1>Protected site</h1><p class="muted">Access is granted per address, for a limited time.</p></div>
+    </div>
+    <dl class="facts">
+      <div><dt><svg class="i"><use href="#i-globe"/></svg>Site</dt><dd>{{.Host}}</dd></div>
+      <div><dt><svg class="i"><use href="#i-pin"/></svg>Your address</dt><dd>{{.IP}}</dd></div>
+    </dl>
+    {{if .Error}}<div class="note err"><svg class="i"><use href="#i-x"/></svg>{{.Error}}</div>{{end}}
+    {{template "status" .}}
+  </div>
+  <p class="foot">Requests go to the site's administrator, who sees your address and the code shown here.</p>
+</main>
+</body>
+</html>

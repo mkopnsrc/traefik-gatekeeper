@@ -1,0 +1,37 @@
+{{define "status"}}
+{{$pending := and .Req (eq (printf "%s" .Req.Status) "pending") (not .Allowed)}}
+<div id="status" class="state"{{if $pending}} hx-get="{{.Base}}/status" hx-trigger="every 5s" hx-swap="outerHTML"{{else if .Allowed}} hx-get="{{.Base}}/status" hx-trigger="every 60s" hx-swap="outerHTML"{{end}}>
+{{if .Allowed}}
+  <div class="result ok">
+    <div class="ring ok"><svg class="i"><use href="#i-check"/></svg></div>
+    <div><h2>Access granted</h2>
+      <p>Allowed until <strong>{{localtime .Until}}</strong> <span class="muted nowrap">· {{left .Until}} left</span></p></div>
+  </div>
+  <a class="btn" href="/">Continue to the site<svg class="i"><use href="#i-arrow"/></svg></a>
+{{else if $pending}}
+  <div class="result">
+    <div class="spinner" aria-hidden="true"></div>
+    <div><h2>Waiting for approval</h2><p class="muted">If you're asked, read out this code:</p></div>
+  </div>
+  <div class="code" aria-label="Request code">{{.Req.Code}}</div>
+  <ol class="steps">
+    <li class="done"><span class="dot"></span>Request sent</li>
+    <li class="now"><span class="dot"></span>Administrator decides</li>
+    <li><span class="dot"></span>Access opens for your address</li>
+  </ol>
+  <p class="small muted center">This page updates by itself. The request expires after a few minutes without a decision.</p>
+{{else}}
+  {{if .Req}}
+    {{if eq (printf "%s" .Req.Status) "denied"}}<div class="note err"><svg class="i"><use href="#i-x"/></svg>Your last request was denied.</div>
+    {{else if eq (printf "%s" .Req.Status) "expired"}}<div class="note"><svg class="i"><use href="#i-clock"/></svg>Your last request expired without a decision.</div>
+    {{else if eq (printf "%s" .Req.Status) "approved"}}<div class="note"><svg class="i"><use href="#i-clock"/></svg>Your previous access has ended.</div>{{end}}
+  {{end}}
+  {{if not .Partial}}
+  <form method="post" action="{{.Base}}">
+    <input type="hidden" name="csrf" value="{{.CSRF}}">
+    <button type="submit" class="btn wide"><svg class="i"><use href="#i-send"/></svg>Request access</button>
+  </form>
+  {{else}}<a class="btn wide secondary" href="{{.Base}}">Send a new request</a>{{end}}
+{{end}}
+</div>
+{{end}}
