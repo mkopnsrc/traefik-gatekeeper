@@ -7,6 +7,7 @@
 //
 //	traefik-gatekeeper              serve (settings from GK_* variables)
 //	traefik-gatekeeper healthcheck  exit 0 if the local server answers /healthz
+//	traefik-gatekeeper version      print the version
 package main
 
 import (
@@ -26,12 +27,17 @@ import (
 	"github.com/mkopnsrc/traefik-gatekeeper/internal/web"
 )
 
+// version is set at build time: -ldflags "-X main.version=1.2.3".
+var version = "dev"
+
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 	var err error
 	switch {
 	case len(os.Args) > 1 && os.Args[1] == "healthcheck":
 		err = healthcheck()
+	case len(os.Args) > 1 && (os.Args[1] == "version" || os.Args[1] == "--version"):
+		fmt.Println(version)
 	case len(os.Args) > 1:
 		err = fmt.Errorf("unknown command %q", os.Args[1])
 	default:
@@ -86,7 +92,7 @@ func serve() error {
 	}
 	errc := make(chan error, 1)
 	go func() {
-		slog.Info("listening", "addr", cfg.Listen, "base_path", cfg.BasePath,
+		slog.Info("listening", "version", version, "addr", cfg.Listen, "base_path", cfg.BasePath,
 			"allowlist", cfg.AllowlistFile, "middleware", cfg.MiddlewareName)
 		errc <- hs.ListenAndServe()
 	}()
